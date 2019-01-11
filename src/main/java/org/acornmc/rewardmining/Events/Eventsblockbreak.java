@@ -1,6 +1,7 @@
 package org.acornmc.rewardmining.Events;
 
 import org.acornmc.rewardmining.RewardMining;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
@@ -21,8 +22,18 @@ public class Eventsblockbreak implements Listener {
     public void Eventsblockbreak(BlockBreakEvent event) {
         Material material = event.getBlock().getType();
 
-        if (!event.getPlayer().getInventory().getItemInMainHand().containsEnchantment(SILK_TOUCH)) {
+        double version = Double.parseDouble(Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3].split("_")[1]);
+
+        boolean hasSilkTouch;
+        if (version > 8) {
+            hasSilkTouch = event.getPlayer().getInventory().getItemInMainHand().containsEnchantment(SILK_TOUCH);
+        } else {
+            hasSilkTouch = event.getPlayer().getItemInHand().containsEnchantment(SILK_TOUCH);
+        }
+        if (!hasSilkTouch) {
+
             if (plugin.getConfig().contains("Blocks." + material)) {
+
                 ConfigurationSection cs = plugin.getConfig().getConfigurationSection("Blocks." + material);
 
                 Random random = new Random();
@@ -38,15 +49,16 @@ public class Eventsblockbreak implements Listener {
                     }
                 }
 
-                if (!(lowestNumberAboveRandom == 1.1)) {
-                    System.out.println("lowest number not 1.1");
+                if (lowestNumberAboveRandom <= 1) {
                     List<String> stringList = plugin.getConfig().getStringList("Blocks." + material + "." + "[" + lowestNumberAboveRandom + "]");
                     for (int i = 0; i < stringList.size(); i++) {
                         String command = stringList.get(i);
                         String modifiedCommand = command.replace("%PLAYER%", event.getPlayer().getPlayerListName());
                         getServer().dispatchCommand(getServer().getConsoleSender(), modifiedCommand);
+
                     }
                 }
+
             }
         }
     }
